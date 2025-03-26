@@ -10,8 +10,8 @@ namespace API_Sicily.DAL
         // Paramètres de connexion
         private static string provider = "localhost";
         private static string dataBase = "sicilylinesmobile";
-        private static string uid = "user";
-        private static string mdp = "azer";
+        private static string uid = "root";
+        private static string mdp = "";
 
 
 

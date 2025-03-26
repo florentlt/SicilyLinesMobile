@@ -18,24 +18,18 @@ namespace API_Sicily.Controllers
 
             try
             {
-                // 1. Récupérer le client par email seulement (sans vérifier le mdp)
+                // 1. Récupérer le client par email seulement
                 Client? client = ClientDAO.GetClientByEmail(request.Email);
 
-                if (client == null)
+                if (client == null || !PasswordHash.VerifyPassword(request.Password, client.Mdp))
                 {
-                    return Unauthorized(new { Message = "Identifiants Invalides" });
+                    return Unauthorized(new { Message = "Identifiants invalides ou mot de passe incorrect." });
                 }
 
-                // 2. Vérifier le mot de passe avec le hash stocké
-                if (!PasswordHash.VerifyPassword(request.Password, client.Mdp))
-                {
-                    return Unauthorized(new { Message = "Mot de passe incorrect." });
-                }
 
                 // 3. Connexion réussie
                 return Ok(new
                 {
-                    Message = "Connexion réussie.",
                     Client = new
                     {
                         client.IdClient,
@@ -45,7 +39,8 @@ namespace API_Sicily.Controllers
                         client.Cp,
                         client.Adresse,
                         client.Ville
-                    }
+                    },
+                    Message = $"Connexion réussie! Bonjour {client.Prenom}"
                 });
             }
             catch (Exception ex)
