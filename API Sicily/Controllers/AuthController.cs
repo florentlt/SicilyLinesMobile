@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using API_Sicily.Models;
 using API_Sicily.DAL;
+using API_Sicily.Service;
 
 namespace API_Sicily.Controllers
 {
@@ -8,6 +9,14 @@ namespace API_Sicily.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
+        private readonly TokenProvider _tokenProvider;
+
+        // Injection du TokenProvider
+        public AuthController(TokenProvider tokenProvider)
+        {
+            _tokenProvider = tokenProvider;
+        }
+
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
@@ -18,7 +27,7 @@ namespace API_Sicily.Controllers
 
             try
             {
-                // 1. Récupérer le client par email seulement
+                // 1. Récupérer le client par email
                 Client? client = ClientDAO.GetClientByEmail(request.Email);
 
                 if (client == null || !PasswordHash.VerifyPassword(request.Password, client.Mdp))
@@ -26,26 +35,23 @@ namespace API_Sicily.Controllers
                     return Unauthorized(new { Message = "Identifiants invalides ou mot de passe incorrect." });
                 }
 
+                // 2. Générer le token via l'instance injectée
+                string token = _tokenProvider.GenerateToken(client);
 
-                // 3. Connexion réussie
+                // 3. Réponse de succès
                 return Ok(new
                 {
-                    Client = new
-                    {
-                        client.IdClient,
-                        client.Nom,
-                        client.Prenom,
-                        client.Email,
-                        client.Cp,
-                        client.Adresse,
-                        client.Ville
-                    },
-                    Message = $"Connexion réussie! Bonjour {client.Prenom}"
+                    Token = token,
+                    Message = $"Connexion réussie! Bonjour {client.Prenom}",
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Erreur interne du serveur.", Error = ex.Message });
+                return StatusCode(500, new
+                {
+                    Message = "Erreur interne du serveur.",
+                    Error = ex.Message
+                });
             }
         }
     }

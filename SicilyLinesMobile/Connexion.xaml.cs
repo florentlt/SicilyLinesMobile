@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using SicilyLinesMobile.Models;
 using System.Diagnostics;
+using Microsoft.Maui.Storage;
 
 namespace SicilyLinesMobile
 {
@@ -41,15 +42,18 @@ namespace SicilyLinesMobile
                         var responseData = JsonConvert.DeserializeObject<LoginResponse>(result);
                         if (responseData != null)
                         {
+                            // Stockage du token dans les préférences
+                            Preferences.Set("AuthToken", responseData.Token);
+
                             await DisplayAlert("Succès", responseData.Message, "OK");
 
                             // Redirection vers la page principale
                             await Navigation.PushAsync(new MainPage());
                         }
                     }
-                    if (!response.IsSuccessStatusCode)
+                    else
                     {
-                        // Connexion réussie
+                        // Gestion d'un échec de la connexion
                         var responseData = JsonConvert.DeserializeObject<LoginResponse>(result);
                         if (responseData != null)
                         {

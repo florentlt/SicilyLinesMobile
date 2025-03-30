@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BCrypt.Net;
 
-namespace API_Sicily.Models
+namespace API_Sicily.Service
 {
     public class PasswordHash
     {
