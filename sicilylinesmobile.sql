@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost:3306
--- Généré le : mar. 25 mars 2025 à 09:33
+-- Généré le : lun. 31 mars 2025 à 04:24
 -- Version du serveur : 8.0.30
 -- Version de PHP : 8.1.10
 
@@ -88,8 +88,8 @@ CREATE TABLE `client` (
 --
 
 INSERT INTO `client` (`IDCLIENT`, `CP`, `ADRESSE`, `VILLE`, `EMAIL`, `MDP`, `NOM`, `PRENOM`) VALUES
-(1, '75001', '5 Rue de Rivoli', 'Paris', 'john.doe@mail.com', '$2b$12$JbSLzNki//kySfSv4ITsiOXZef6cXUF04sHGKlVWipP.ty6Sr2/xO', 'DOE', 'John'),
-(2, '69002', '10 Rue de la République', 'Lyon', 'jean.dujardin@mail.com', 'azer', 'DUJARDIN', 'Jean'),
+(1, '75001', '5 Rue de Rivoli', 'Paris', 'flo@mail.com', '$2b$12$JbSLzNki//kySfSv4ITsiOXZef6cXUF04sHGKlVWipP.ty6Sr2/xO', 'LOUET', 'Florent'),
+(2, '69002', '10 Rue de la République', 'Lyon', 'jean.dujardin@mail.com', '$2b$12$QGO.9LcUerF9.ZCzaFGaP.N8q9H.D2cSZQarc92oLhsyOOuyP5Htq', 'DUJARDIN', 'Jean'),
 (3, '13001', '15 Boulevard de la Liberté', 'Marseille', 'frederic.chopin@mail.com', 'azer', 'CHOPIN', 'Frederic'),
 (4, '59000', '20 Rue Faidherbe', 'Lille', 'erik.satie@mail.com', 'azer', 'SATIE', 'Erik');
 
@@ -261,7 +261,7 @@ CREATE TABLE `reservation` (
   `IDLIAISON` int NOT NULL,
   `IDTRAVERSEE` int NOT NULL,
   `IDCLIENT` int NOT NULL,
-  `RECAPITULATIF` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
+  `RECAPITULATIF` char(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -269,7 +269,12 @@ CREATE TABLE `reservation` (
 --
 
 INSERT INTO `reservation` (`IDRESERVATION`, `IDLIAISON`, `IDTRAVERSEE`, `IDCLIENT`, `RECAPITULATIF`) VALUES
-(1, 1, 541202, 1, 'Réservation pour 2 Adultes');
+(1, 1, 541202, 1, 'Réservation pour 2 Adultes'),
+(2, 2, 541203, 2, 'Réservation pour 1 Adulte et 1 Voiture'),
+(3, 1, 36, 2, 'Réservation pour 3 Adultes'),
+(4, 21, 541207, 1, 'Réservation pour 2 Adultes et 1 Enfant'),
+(5, 24, 541208, 1, 'Réservation pour 1 Adulte et 2 Juniors'),
+(6, 30, 541210, 2, 'Réservation pour 2 Adultes et 1 Véhicule inférieur à 4m');
 
 -- --------------------------------------------------------
 
@@ -353,7 +358,23 @@ CREATE TABLE `traversee` (
 INSERT INTO `traversee` (`IDLIAISON`, `IDTRAVERSEE`, `IDBATEAU`, `DATETRAVERSEE`, `HEURE`, `LIBELLE`) VALUES
 (1, 36, 1, '2022-10-02', '10:00:00', 'Traversee1'),
 (1, 541202, 1, '2021-09-22', '09:00:00', 'Traversee2'),
-(2, 541203, 2, '2021-09-22', '17:00:00', 'Traversee3');
+(1, 541204, 1, '2026-04-01', '10:30:00', 'Traversée1'),
+(1, 541211, 4, '2024-02-02', '18:00:00', 'Traversée12'),
+(2, 541203, 2, '2021-09-22', '17:00:00', 'Traversee3'),
+(2, 541205, 2, '2026-04-01', '14:00:00', 'Traversée2'),
+(2, 541208, 1, '2024-05-01', '10:30:00', 'Traversée13'),
+(11, 541206, 3, '2026-02-02', '16:00:00', 'Traversée3'),
+(11, 541209, 2, '2024-05-01', '14:00:00', 'Traversée14'),
+(15, 541207, 4, '2026-02-02', '18:00:00', 'Traversée4'),
+(15, 541210, 3, '2024-08-02', '16:00:00', 'Traversée15'),
+(16, 541204, 1, '2026-05-01', '10:30:00', 'Traversée5'),
+(16, 541211, 4, '2024-08-02', '18:00:00', 'Traversée16'),
+(17, 541205, 2, '2026-05-01', '14:00:00', 'Traversée6'),
+(19, 541206, 3, '2026-08-02', '16:00:00', 'Traversée7'),
+(21, 541207, 4, '2026-08-02', '18:00:00', 'Traversée8'),
+(24, 541208, 1, '2024-04-01', '10:30:00', 'Traversée9'),
+(25, 541209, 2, '2024-04-01', '14:00:00', 'Traversée10'),
+(30, 541210, 3, '2024-02-02', '16:00:00', 'Traversée11');
 
 -- --------------------------------------------------------
 
