@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using MySql.Data.MySqlClient;
 using API_Sicily.Models;
 
@@ -12,8 +11,6 @@ namespace API_Sicily.DAL
         private static string dataBase = "sicilylinesmobile";
         private static string uid = "root";
         private static string mdp = "";
-
-
 
         private static ConnexionSql? maConnexionSql;
         private static MySqlCommand? Ocom;
@@ -37,7 +34,7 @@ namespace API_Sicily.DAL
                         int idClient = reader.GetInt32("idClient");
                         string nom = reader.GetString("nom");
                         string prenom = reader.GetString("prenom");
-                        string mdp = reader.GetString("mdp"); 
+                        string mdp = reader.GetString("mdp");
                         string adresse = reader.IsDBNull(reader.GetOrdinal("adresse")) ? "" : reader.GetString("adresse");
                         string cp = reader.IsDBNull(reader.GetOrdinal("cp")) ? "" : reader.GetString("cp");
                         string ville = reader.IsDBNull(reader.GetOrdinal("ville")) ? "" : reader.GetString("ville");
@@ -56,7 +53,7 @@ namespace API_Sicily.DAL
             return null;
         }
 
-        //Get infos du client
+        // Get infos du client
         public static Client? GetClientInfoByEmail(string email)
         {
             try
@@ -94,6 +91,36 @@ namespace API_Sicily.DAL
             }
 
             return null;
+        }
+
+        // Mettre à jour les informations du client (adresse, cp, ville)
+        public static bool UpdateClientInfoByEmail(string email, string adresse, string cp, string ville)
+        {
+            try
+            {
+                maConnexionSql = ConnexionSql.getInstance(provider, dataBase, uid, mdp);
+                maConnexionSql.openConnection();
+
+                // Requête SQL pour mettre à jour les informations du client
+                string query = "UPDATE Client SET ADRESSE = @Adresse, CP = @Cp, VILLE = @Ville WHERE EMAIL = @Email";
+                Ocom = maConnexionSql.reqExec(query);
+                Ocom.Parameters.AddWithValue("@Email", email);
+                Ocom.Parameters.AddWithValue("@Adresse", adresse);
+                Ocom.Parameters.AddWithValue("@Cp", cp);
+                Ocom.Parameters.AddWithValue("@Ville", ville);
+
+                // Exécution de la requête
+                int rowsAffected = Ocom.ExecuteNonQuery();
+
+                maConnexionSql.closeConnection();
+
+                // Si des lignes ont été affectées, cela signifie que la mise à jour a réussi
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erreur lors de la mise à jour des informations du client : " + ex.Message);
+            }
         }
     }
 }

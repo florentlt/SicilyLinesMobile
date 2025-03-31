@@ -12,7 +12,6 @@ namespace API_Sicily.Controllers
     [ApiController]
     public class ClientController : ControllerBase
     {
-
         // Récupérer les informations d'un client par email
         [HttpGet("get")]
         public ActionResult<Client> GetClientInfo()
@@ -46,6 +45,44 @@ namespace API_Sicily.Controllers
 
                 // Retourner les informations du client
                 return Ok(client);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erreur serveur : {ex.Message}");
+            }
+        }
+
+        // Mettre à jour les informations du client (adresse, cp, ville)
+        [HttpPut("update")]
+        public ActionResult UpdateClientInfo([FromBody] UpdateClientRequest request)
+        {
+            try
+            {
+                // Récupérer le token d'authentification dans l'en-tête de la requête
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+                if (string.IsNullOrEmpty(token))
+                {
+                    return BadRequest("Token d'authentification manquant");
+                }
+
+                // Extraire l'email du token JWT
+                string email = GetEmailFromToken(token);
+
+                if (string.IsNullOrEmpty(email))
+                {
+                    return BadRequest("Email non trouvé dans le token");
+                }
+
+                // Mettre à jour les informations du client
+                bool success = ClientDAO.UpdateClientInfoByEmail(email, request.Adresse, request.Cp, request.Ville);
+
+                if (!success)
+                {
+                    return BadRequest("Échec de la mise à jour des informations");
+                }
+
+                return Ok("Informations mises à jour avec succès");
             }
             catch (Exception ex)
             {

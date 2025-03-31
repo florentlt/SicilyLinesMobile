@@ -1,6 +1,5 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Xml;
 using Newtonsoft.Json;
 using SicilyLinesMobile.Models;
 
@@ -17,34 +16,23 @@ namespace SicilyLinesMobile
         {
             base.OnAppearing();
 
-            // Récupérer le token d'authentification
-            string token = Preferences.Get("AuthToken", string.Empty);
-
-            if (string.IsNullOrEmpty(token))
-            {
-                // Si le token est vide ou null, afficher un message d'erreur
-                await DisplayAlert("Erreur", "Token d'authentification manquant", "OK");
-                return;
-            }
+            string token = GetAuthToken();
+            if (token == null) return;
 
             using (var client = new HttpClient())
             {
                 try
                 {
-                    // Configurer l'URL de l'API et ajouter l'en-tête d'authentification
                     client.BaseAddress = new Uri("https://localhost:7221/");
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                    // Effectuer la requête GET pour récupérer les informations du client
                     var response = await client.GetAsync("api/client/get");
 
                     if (response.IsSuccessStatusCode)
                     {
-                        // Lire la réponse et la désérialiser en objet Client
                         var content = await response.Content.ReadAsStringAsync();
                         var clientInfo = JsonConvert.DeserializeObject<Client>(content);
 
-                        // Mettre à jour les entrées avec les données récupérées
                         NomEntry.Text = clientInfo.Nom;
                         PrenomEntry.Text = clientInfo.Prenom;
                         EmailEntry.Text = clientInfo.Email;
@@ -54,23 +42,69 @@ namespace SicilyLinesMobile
                     }
                     else
                     {
-                        // Si la réponse n'est pas un succès, afficher un message d'erreur
                         await DisplayAlert("Erreur", "Échec de la récupération des informations", "OK");
                     }
                 }
                 catch (Exception ex)
                 {
-                    // En cas d'exception (ex : problème réseau), afficher un message d'erreur
                     await DisplayAlert("Erreur", $"Erreur lors de la communication avec l'API : {ex.Message}", "OK");
                 }
             }
         }
 
+        // Méthode pour récupérer le token d'authentification
+        private string GetAuthToken()
+        {
+            string token = Preferences.Get("AuthToken", string.Empty);
+
+            if (string.IsNullOrEmpty(token))
+            {
+                DisplayAlert("Erreur", "Token d'authentification manquant", "OK");
+                return null;
+            }
+
+            return token;
+        }
 
         // Méthode pour le bouton "Modifier mes informations"
         private async void OnModifyButtonClicked(object sender, EventArgs e)
         {
-            await DisplayAlert("Modification", "Vos informations ont été modifiées !", "OK");
+            var updateRequest = new UpdateClientRequest
+            {
+                Adresse = AdresseEntry.Text,
+                Cp = CodePostalEntry.Text,
+                Ville = VilleEntry.Text
+            };
+
+            string token = GetAuthToken();
+            if (token == null) return;
+
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    client.BaseAddress = new Uri("https://localhost:7221/");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                    var jsonContent = JsonConvert.SerializeObject(updateRequest);
+                    var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+                    var response = await client.PutAsync("api/client/update", content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        await DisplayAlert("Succès", "Vos informations ont été modifiées avec succès", "OK");
+                    }
+                    else
+                    {
+                        await DisplayAlert("Erreur", "Échec de la modification des informations", "OK");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert("Erreur", $"Erreur lors de la communication avec l'API : {ex.Message}", "OK");
+                }
+            }
         }
     }
 }
