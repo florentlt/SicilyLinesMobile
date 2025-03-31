@@ -55,5 +55,45 @@ namespace API_Sicily.DAL
 
             return null;
         }
+
+        //Get infos du client
+        public static Client? GetClientInfoByEmail(string email)
+        {
+            try
+            {
+                maConnexionSql = ConnexionSql.getInstance(provider, dataBase, uid, mdp);
+                maConnexionSql.openConnection();
+
+                // Requête SQL avec les noms de colonnes
+                string query = "SELECT CP, ADRESSE, VILLE, EMAIL, NOM, PRENOM FROM Client WHERE EMAIL = @Email";
+                Ocom = maConnexionSql.reqExec(query);
+                Ocom.Parameters.AddWithValue("@Email", email);
+
+                using (MySqlDataReader reader = Ocom.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        // Récupération des informations spécifiques
+                        string cp = reader.IsDBNull(reader.GetOrdinal("CP")) ? "" : reader.GetString("CP");
+                        string adresse = reader.IsDBNull(reader.GetOrdinal("ADRESSE")) ? "" : reader.GetString("ADRESSE");
+                        string ville = reader.IsDBNull(reader.GetOrdinal("VILLE")) ? "" : reader.GetString("VILLE");
+                        string emailFromDb = reader.GetString("EMAIL");
+                        string nom = reader.GetString("NOM");
+                        string prenom = reader.GetString("PRENOM");
+
+                        // Retourner un objet Client avec ces informations
+                        return new Client(0, nom, prenom, emailFromDb, "", adresse, cp, ville);
+                    }
+                }
+
+                maConnexionSql.closeConnection();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erreur lors de la récupération des informations du client : " + ex.Message);
+            }
+
+            return null;
+        }
     }
 }

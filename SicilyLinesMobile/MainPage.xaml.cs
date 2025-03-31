@@ -21,5 +21,14 @@ namespace SicilyLinesMobile
                 TokenLabel.Text = "Token non trouvé. Veuillez vous connecter.";
             }
         }
+        private async void OnInfoButtonClicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new InfoClient());
+        }
+
+        private async void OnReservationsButtonClicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new Reservation());
+        }
     }
 }
