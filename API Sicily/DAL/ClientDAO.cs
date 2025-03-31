@@ -122,5 +122,49 @@ namespace API_Sicily.DAL
                 throw new Exception("Erreur lors de la mise à jour des informations du client : " + ex.Message);
             }
         }
+
+        // Get des reservations du client
+        public static List<Reservation> GetReservationsByEmail(string email)
+        {
+            List<Reservation> reservations = new List<Reservation>();
+
+            try
+            {
+                maConnexionSql = ConnexionSql.getInstance(provider, dataBase, uid, mdp);
+                maConnexionSql.openConnection();
+
+                string query = @"SELECT t.libelle AS Nom_Traversee, t.DATETRAVERSEE AS Date_Depart 
+                         FROM reservation r
+                         JOIN traversee t ON r.IDLIAISON = t.IDLIAISON AND r.IDTRAVERSEE = t.IDTRAVERSEE
+                         JOIN client c ON r.IDCLIENT = c.IDCLIENT
+                         WHERE c.EMAIL = @Email";
+
+                Ocom = maConnexionSql.reqExec(query);
+                Ocom.Parameters.AddWithValue("@Email", email);
+
+                using (MySqlDataReader reader = Ocom.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string nomTraversee = reader.GetString("Nom_Traversee");
+                        DateTime dateDepart = reader.GetDateTime("Date_Depart");
+
+                        reservations.Add(new Reservation
+                        {
+                            NomTraversee = nomTraversee,
+                            DateDepart = dateDepart
+                        });
+                    }
+                }
+
+                maConnexionSql.closeConnection();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erreur lors de la récupération des réservations : " + ex.Message);
+            }
+
+            return reservations;
+        }
     }
 }

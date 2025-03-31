@@ -90,6 +90,41 @@ namespace API_Sicily.Controllers
             }
         }
 
+        //Afficher les reservations du client
+        [HttpGet("reservations")]
+        public ActionResult<List<Reservation>> GetClientReservations()
+        {
+            try
+            {
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+                if (string.IsNullOrEmpty(token))
+                {
+                    return BadRequest("Token d'authentification manquant");
+                }
+
+                string email = GetEmailFromToken(token);
+
+                if (string.IsNullOrEmpty(email))
+                {
+                    return BadRequest("Email non trouvé dans le token");
+                }
+
+                List<Reservation> reservations = ClientDAO.GetReservationsByEmail(email);
+
+                if (reservations.Count == 0)
+                {
+                    return NotFound("Aucune réservation trouvée pour ce client.");
+                }
+
+                return Ok(reservations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erreur serveur : {ex.Message}");
+            }
+        }
+
         // Méthode pour extraire l'email du token JWT
         private string GetEmailFromToken(string token)
         {
@@ -116,5 +151,6 @@ namespace API_Sicily.Controllers
 
             return string.Empty;
         }
+
     }
 }

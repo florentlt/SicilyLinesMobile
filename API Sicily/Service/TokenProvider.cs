@@ -24,10 +24,7 @@ namespace API_Sicily.Service
             // Création des "claims" pour le token
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, client.IdClient.ToString()), // Subject
                 new Claim(JwtRegisteredClaimNames.Email, client.Email),
-                new Claim(JwtRegisteredClaimNames.GivenName, client.Prenom),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             // Création du token JWT
