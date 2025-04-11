@@ -15,7 +15,7 @@ namespace API_Sicily.Service
             _configuration = configuration;
         }
 
-        public string GenerateToken(Client client)
+        public string GenerateToken(ClientAuth clientAuth)
         {
             string secretKey = _configuration["Jwt:Secret"]!;
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
@@ -24,8 +24,9 @@ namespace API_Sicily.Service
             // Création des "claims" pour le token
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Email, client.Email),
+                new Claim(JwtRegisteredClaimNames.Sub, clientAuth.IdClient.ToString())
             };
+
 
             // Création du token JWT
             var token = new JwtSecurityToken(

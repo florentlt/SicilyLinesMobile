@@ -18,8 +18,6 @@
 
         public string Ville { get; set; }
 
-        // Constructeur par défaut pour la désérialisation JSON
-        public Client() { }
 
         // Constructeur principal
         public Client(int idClient, string nom, string prenom, string email, string mdp, string adresse, string cp, string ville)
@@ -32,12 +30,6 @@
             this.Adresse = adresse;
             this.Cp = cp;
             this.Ville = ville;
-        }
-
-        // Propriété Description pour affichage
-        public string Description
-        {
-            get => $"Id : {IdClient} | Nom : {Nom} | Prenom : {Prenom} | Email : {Email} | Mot de Passe : {Mdp} | Adresse : {Adresse} | CP : {Cp} | Ville : {Ville}";
         }
     }
 }

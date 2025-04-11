@@ -66,13 +66,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Connexion.xaml">
+	  <MauiXaml Update="Views\Connexion.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="InfoClient.xaml">
+	  <MauiXaml Update="Views\InfoClient.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Reservation.xaml">
+	  <MauiXaml Update="Views\Reservation.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

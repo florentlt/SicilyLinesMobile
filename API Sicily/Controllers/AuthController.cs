@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using API_Sicily.Models;
 using API_Sicily.DAL;
 using API_Sicily.Service;
+using API_Sicily.DTOs;
+using API_Sicily.Models;
 
 namespace API_Sicily.Controllers
 {
@@ -11,15 +12,17 @@ namespace API_Sicily.Controllers
     {
         private readonly TokenProvider _tokenProvider;
 
-        // Injection du TokenProvider
+        // Initialisation du TokenProvider
         public AuthController(TokenProvider tokenProvider)
         {
             _tokenProvider = tokenProvider;
         }
 
+        // Authentification du Client
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
+            // Vérif des champs
             if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
             {
                 return BadRequest(new { Message = "Email ou mot de passe manquant." });
@@ -27,22 +30,23 @@ namespace API_Sicily.Controllers
 
             try
             {
-                // 1. Récupérer le client par email
-                Client? client = ClientDAO.GetClientByEmail(request.Email);
+                // Récupérer le client par email
+                ClientAuth? clientAuth = ClientDAO.GetClientByAuth(request.Email);
 
-                if (client == null || !PasswordHash.VerifyPassword(request.Password, client.Mdp))
+                // Si le mail est valide, on compare le hash de la bdd avec celui entré 
+                if (clientAuth == null || !PasswordHash.VerifyPassword(request.Password, clientAuth.Mdp))
                 {
-                    return Unauthorized(new { Message = "Identifiants invalides ou mot de passe incorrect." });
+                    return Unauthorized(new { Message = "Identifiants invalides." });
                 }
 
-                // 2. Générer le token via l'instance injectée
-                string token = _tokenProvider.GenerateToken(client);
+                // Générer le token via l'instance injectée
+                string token = _tokenProvider.GenerateToken(clientAuth);
 
-                // 3. Réponse de succès
+                // Réponse de succès
                 return Ok(new
                 {
                     Token = token,
-                    Message = $"Connexion réussie! Bonjour {client.Prenom}",
+                    Message = $"Connexion réussie, Bienvenue.",
                 });
             }
             catch (Exception ex)

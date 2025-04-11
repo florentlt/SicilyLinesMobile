@@ -1,5 +1,4 @@
-﻿using System;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 using API_Sicily.Models;
 
 namespace API_Sicily.DAL
@@ -16,14 +15,14 @@ namespace API_Sicily.DAL
         private static MySqlCommand? Ocom;
 
         // Authentification d'un client
-        public static Client? GetClientByEmail(string email)
+        public static ClientAuth? GetClientByAuth(string email)
         {
             try
             {
                 maConnexionSql = ConnexionSql.getInstance(provider, dataBase, uid, mdp);
                 maConnexionSql.openConnection();
 
-                string query = "SELECT * FROM Client WHERE email = @Email";
+                string query = "SELECT idClient, mdp FROM Client WHERE email = @Email";
                 Ocom = maConnexionSql.reqExec(query);
                 Ocom.Parameters.AddWithValue("@Email", email);
 
@@ -32,8 +31,41 @@ namespace API_Sicily.DAL
                     if (reader.Read())
                     {
                         int idClient = reader.GetInt32("idClient");
+                        string mdp = reader.GetString("mdp");
+
+                        return new ClientAuth(idClient, mdp);
+                    }
+                }
+
+                maConnexionSql.closeConnection();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erreur lors de la récupération du client : " + ex.Message);
+            }
+
+            return null;
+        }
+
+        // Get des infos du client
+        public static Client? GetClientById(int idClient)
+        {
+            try
+            {
+                maConnexionSql = ConnexionSql.getInstance(provider, dataBase, uid, mdp);
+                maConnexionSql.openConnection();
+
+                string query = "SELECT * FROM Client WHERE idClient = @IdClient";
+                Ocom = maConnexionSql.reqExec(query);
+                Ocom.Parameters.AddWithValue("@IdClient", idClient);
+
+                using (MySqlDataReader reader = Ocom.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
                         string nom = reader.GetString("nom");
                         string prenom = reader.GetString("prenom");
+                        string email = reader.GetString("email");
                         string mdp = reader.GetString("mdp");
                         string adresse = reader.IsDBNull(reader.GetOrdinal("adresse")) ? "" : reader.GetString("adresse");
                         string cp = reader.IsDBNull(reader.GetOrdinal("cp")) ? "" : reader.GetString("cp");
@@ -53,68 +85,25 @@ namespace API_Sicily.DAL
             return null;
         }
 
-        // Get infos du client
-        public static Client? GetClientInfoByEmail(string email)
+
+        // Update des infos client
+        public static bool UpdateClientInfoById(int idClient, string adresse, string cp, string ville)
         {
             try
             {
                 maConnexionSql = ConnexionSql.getInstance(provider, dataBase, uid, mdp);
                 maConnexionSql.openConnection();
 
-                // Requête SQL avec les noms de colonnes
-                string query = "SELECT CP, ADRESSE, VILLE, EMAIL, NOM, PRENOM FROM Client WHERE EMAIL = @Email";
+                string query = "UPDATE Client SET adresse = @Adresse, cp = @Cp, ville = @Ville WHERE idClient = @IdClient";
                 Ocom = maConnexionSql.reqExec(query);
-                Ocom.Parameters.AddWithValue("@Email", email);
-
-                using (MySqlDataReader reader = Ocom.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
-                        // Récupération des informations spécifiques
-                        string cp = reader.IsDBNull(reader.GetOrdinal("CP")) ? "" : reader.GetString("CP");
-                        string adresse = reader.IsDBNull(reader.GetOrdinal("ADRESSE")) ? "" : reader.GetString("ADRESSE");
-                        string ville = reader.IsDBNull(reader.GetOrdinal("VILLE")) ? "" : reader.GetString("VILLE");
-                        string emailFromDb = reader.GetString("EMAIL");
-                        string nom = reader.GetString("NOM");
-                        string prenom = reader.GetString("PRENOM");
-
-                        // Retourner un objet Client avec ces informations
-                        return new Client(0, nom, prenom, emailFromDb, "", adresse, cp, ville);
-                    }
-                }
-
-                maConnexionSql.closeConnection();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Erreur lors de la récupération des informations du client : " + ex.Message);
-            }
-
-            return null;
-        }
-
-        // Mettre à jour les informations du client (adresse, cp, ville)
-        public static bool UpdateClientInfoByEmail(string email, string adresse, string cp, string ville)
-        {
-            try
-            {
-                maConnexionSql = ConnexionSql.getInstance(provider, dataBase, uid, mdp);
-                maConnexionSql.openConnection();
-
-                // Requête SQL pour mettre à jour les informations du client
-                string query = "UPDATE Client SET ADRESSE = @Adresse, CP = @Cp, VILLE = @Ville WHERE EMAIL = @Email";
-                Ocom = maConnexionSql.reqExec(query);
-                Ocom.Parameters.AddWithValue("@Email", email);
                 Ocom.Parameters.AddWithValue("@Adresse", adresse);
                 Ocom.Parameters.AddWithValue("@Cp", cp);
                 Ocom.Parameters.AddWithValue("@Ville", ville);
+                Ocom.Parameters.AddWithValue("@IdClient", idClient);
 
-                // Exécution de la requête
                 int rowsAffected = Ocom.ExecuteNonQuery();
-
                 maConnexionSql.closeConnection();
 
-                // Si des lignes ont été affectées, cela signifie que la mise à jour a réussi
                 return rowsAffected > 0;
             }
             catch (Exception ex)
@@ -123,8 +112,9 @@ namespace API_Sicily.DAL
             }
         }
 
+
         // Get des reservations du client
-        public static List<Reservation> GetReservationsByEmail(string email)
+        public static List<Reservation> GetReservationsById(int idClient)
         {
             List<Reservation> reservations = new List<Reservation>();
 
@@ -137,10 +127,10 @@ namespace API_Sicily.DAL
                          FROM reservation r
                          JOIN traversee t ON r.IDLIAISON = t.IDLIAISON AND r.IDTRAVERSEE = t.IDTRAVERSEE
                          JOIN client c ON r.IDCLIENT = c.IDCLIENT
-                         WHERE c.EMAIL = @Email";
+                         WHERE c.IDCLIENT = @IdClient";
 
                 Ocom = maConnexionSql.reqExec(query);
-                Ocom.Parameters.AddWithValue("@Email", email);
+                Ocom.Parameters.AddWithValue("@IdClient", idClient);
 
                 using (MySqlDataReader reader = Ocom.ExecuteReader())
                 {
@@ -166,5 +156,6 @@ namespace API_Sicily.DAL
 
             return reservations;
         }
+
     }
 }

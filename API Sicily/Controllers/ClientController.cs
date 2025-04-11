@@ -1,10 +1,8 @@
 ﻿using API_Sicily.DAL;
+using API_Sicily.DTOs;
 using API_Sicily.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Text;
 
 namespace API_Sicily.Controllers
 {
@@ -12,38 +10,26 @@ namespace API_Sicily.Controllers
     [ApiController]
     public class ClientController : ControllerBase
     {
-        // Récupérer les informations d'un client par email
+        // Récupérer les informations d'un client par l'id extrait du token
         [HttpGet("get")]
         public ActionResult<Client> GetClientInfo()
         {
             try
             {
-                // Récupérer le token d'authentification dans l'en-tête de la requête
+                // Extrait le token JWT de l'en-tête Authorization en supprimant le préfixe "Bearer ".
                 string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
                 if (string.IsNullOrEmpty(token))
-                {
                     return BadRequest("Token d'authentification manquant");
-                }
 
-                // Extraire l'email du token JWT
-                string email = GetEmailFromToken(token);
+                if (!int.TryParse(GetIdFromToken(token), out int id))
+                    return BadRequest("ID client invalide dans le token");
 
-                if (string.IsNullOrEmpty(email))
-                {
-                    return BadRequest("Email non trouvé dans le token");
-                }
+                Client? client = ClientDAO.GetClientById(id);
 
-                // Appel au DAO pour récupérer les informations du client
-                Client? client = ClientDAO.GetClientInfoByEmail(email);
-
-                // Si le client n'est pas trouvé
                 if (client == null)
-                {
                     return NotFound("Client non trouvé");
-                }
 
-                // Retourner les informations du client
                 return Ok(client);
             }
             catch (Exception ex)
@@ -52,35 +38,24 @@ namespace API_Sicily.Controllers
             }
         }
 
-        // Mettre à jour les informations du client (adresse, cp, ville)
+        // Mettre à jour les informations du client
         [HttpPut("update")]
         public ActionResult UpdateClientInfo([FromBody] UpdateClientRequest request)
         {
             try
             {
-                // Récupérer le token d'authentification dans l'en-tête de la requête
                 string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
                 if (string.IsNullOrEmpty(token))
-                {
                     return BadRequest("Token d'authentification manquant");
-                }
 
-                // Extraire l'email du token JWT
-                string email = GetEmailFromToken(token);
+                if (!int.TryParse(GetIdFromToken(token), out int id))
+                    return BadRequest("ID client invalide dans le token");
 
-                if (string.IsNullOrEmpty(email))
-                {
-                    return BadRequest("Email non trouvé dans le token");
-                }
-
-                // Mettre à jour les informations du client
-                bool success = ClientDAO.UpdateClientInfoByEmail(email, request.Adresse, request.Cp, request.Ville);
+                bool success = ClientDAO.UpdateClientInfoById(id, request.Adresse, request.Cp, request.Ville);
 
                 if (!success)
-                {
                     return BadRequest("Échec de la mise à jour des informations");
-                }
 
                 return Ok("Informations mises à jour avec succès");
             }
@@ -90,7 +65,7 @@ namespace API_Sicily.Controllers
             }
         }
 
-        //Afficher les reservations du client
+        // Afficher les réservations du client
         [HttpGet("reservations")]
         public ActionResult<List<Reservation>> GetClientReservations()
         {
@@ -99,23 +74,15 @@ namespace API_Sicily.Controllers
                 string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
                 if (string.IsNullOrEmpty(token))
-                {
                     return BadRequest("Token d'authentification manquant");
-                }
 
-                string email = GetEmailFromToken(token);
+                if (!int.TryParse(GetIdFromToken(token), out int id))
+                    return BadRequest("ID client invalide dans le token");
 
-                if (string.IsNullOrEmpty(email))
-                {
-                    return BadRequest("Email non trouvé dans le token");
-                }
-
-                List<Reservation> reservations = ClientDAO.GetReservationsByEmail(email);
+                List<Reservation> reservations = ClientDAO.GetReservationsById(id);
 
                 if (reservations.Count == 0)
-                {
-                    return NotFound("Aucune réservation trouvée pour ce client.");
-                }
+                    return NotFound("Aucune réservation trouvée pour ce client");
 
                 return Ok(reservations);
             }
@@ -125,32 +92,27 @@ namespace API_Sicily.Controllers
             }
         }
 
-        // Méthode pour extraire l'email du token JWT
-        private string GetEmailFromToken(string token)
+        // Méthode pour extraire l'id du token JWT
+        private string GetIdFromToken(string token)
         {
             try
             {
-                // Décode le token JWT
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
 
-                // Vérifie si le token est valide et contient les informations nécessaires
                 if (jsonToken != null)
                 {
-                    var emailClaim = jsonToken?.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email);
-                    if (emailClaim != null)
-                    {
-                        return emailClaim.Value;
-                    }
+                    var idClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+                    if (idClaim != null)
+                        return idClaim.Value;
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Erreur lors de l'extraction de l'email du token : " + ex.Message);
+                throw new Exception("Erreur lors de l'extraction de l'id du token : " + ex.Message);
             }
 
             return string.Empty;
         }
-
     }
 }

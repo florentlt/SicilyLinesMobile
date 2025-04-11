@@ -1,21 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BCrypt.Net;
-
-namespace API_Sicily.Service
+﻿namespace API_Sicily.Service
 {
     public class PasswordHash
     {
-        // Méthode pour hacher un mot de passe (lors de l'inscription)
+        // Méthode pour hacher un mot de passe lors de l'inscription (pas utilisée pour l'instant)
         public static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
-        // Méthode pour vérifier un mot de passe (lors du login)
+        // Méthode pour vérifier un mot de passe lors du login
         public static bool VerifyPassword(string enteredPassword, string storedHashedPassword)
         {
             return BCrypt.Net.BCrypt.Verify(enteredPassword, storedHashedPassword);
